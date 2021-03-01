@@ -3,7 +3,12 @@ x = 0
 fc = 0
 
 lc = 1
-lcs = {8, 11, 12}
+lcs = {8, 10, 11, 12}
+
+ship = {
+  x = 10,
+  y = 10
+}
 
 function _draw()
   cls()
@@ -12,6 +17,8 @@ function _draw()
 
   line(10, 63, 53, 63, lcs[lc])
   line(10, 64, 53, 64, lcs[lc])
+
+  spr(17, ship.x, ship.y, 2, 2)
 end
 
 function _update()
@@ -29,5 +36,18 @@ function _update()
   end
   if n > 4 then
     n = 1
+  end
+
+  if btn(0) then
+    ship.x = ship.x - 1
+  end
+  if btn(1) then
+    ship.x = ship.x + 1
+  end
+  if btn(2) then
+    ship.y = ship.y - 1
+  end
+  if btn(3) then
+    ship.y = ship.y + 1
   end
 end
