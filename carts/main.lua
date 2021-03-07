@@ -16,10 +16,24 @@ ship = {
   x = 60,
   dx = 1,
   vx = 0,
+  w = 8,
   y = 128*3/5,
   dy = 1,
   a = 0,
   da = 0.05,
+  h = 8,
+  is_alive = true,
+}
+
+enemy = {
+  tile = 27,
+  x = 0,
+  dx = .5,
+  w = 8,
+  y = -100,
+  dy = 2,
+  h = 8,
+  is_alive = true,
 }
 
 frame_counter = 0
@@ -27,6 +41,9 @@ frame_counter = 0
 ship_frames = {41, 40, 39, 38, 37}
 pea_shots = {}
 flame_shots = {}
+
+explosion_frames = {53, 54, 55, 56, 57, 58, 59, 60, 61}
+explosions = {}
 
 ---
 -- main
@@ -55,6 +72,8 @@ function _draw()
   -- draw_angle(ship.a)
 
   draw_ship_shots()
+  draw_enemy(enemy)
+  draw_explosions()
   draw_hud()
   draw_ship(ship)
 end
@@ -106,6 +125,8 @@ function _update()
     ship.shoot()
   end
 
+  update_enemy(enemy)
+  update_explosions()
   update_ship_shots()
   update_angle(ship)
   update_stars()
@@ -119,6 +140,12 @@ function draw_angle(a)
   local r = 5
   circ(x, y, r, 10)
   line(x, y, x + r*sin(a), y - r*cos(a))
+end
+
+function draw_explosions()
+  for explosion in all(explosions) do
+    spr(explosion_frames[explosion.i], explosion.x, explosion.y)
+  end
 end
 
 function draw_hud()
@@ -138,7 +165,7 @@ end
 
 function draw_ship(ship)
   local i = ship_frame_index_from_angle(ship.a)
-  spr(ship_frames[i], ship.x, ship.y, 1, 2)
+  spr(ship_frames[i], ship.x, ship.y)
 end
 
 function draw_ship_shots()
@@ -162,6 +189,13 @@ function draw_stars()
   end
 end
 
+function draw_enemy(enemy)
+  if not enemy.is_alive then
+    return
+  end
+  spr(enemy.tile, enemy.x, enemy.y, 2, 2)
+end
+
 function update_angle(ship)
   local da = ship.da
   if (ship.vx < 0) then
@@ -181,6 +215,15 @@ function update_angle(ship)
     ship.a = 0.25
   elseif (ship.a < -0.25) then
     ship.a = -0.25
+  end
+end
+
+function update_explosions()
+  for explosion in all(explosions) do
+    explosion.i = explosion.i + 1
+    if explosion.i > explosion.life then
+      del(explosions, explosion)
+    end
   end
 end
 
@@ -208,6 +251,21 @@ function update_stars()
   end
 end
 
+function update_enemy(enemy)
+  if not enemy.is_alive then
+    return
+  end
+
+  enemy.x = enemy.x + enemy.dx
+  enemy.y = enemy.y + enemy.dy
+
+  if is_hit(enemy) then
+    kill_enemy(enemy)
+  elseif collides_with(enemy, ship) then
+    die()
+  end
+end
+
 ---
 -- gameplay
 
@@ -216,6 +274,8 @@ pea_shot = {
   tile = 6,
   rounds = 2,
   dy = -7,
+  w = 3,
+  h = 8,
 }
 pea_shot.__index = pea_shot
 
@@ -234,6 +294,8 @@ flame_shot = {
     tile = 5,
     rounds = 2,
     dy = -10,
+    w = 3,
+    h = 8,
 }
 flame_shot.__index = flame_shot
 
@@ -247,6 +309,36 @@ function flame_shoot()
   add(flame_shots, shot)
 end
 
+function is_hit(enemy)
+  for shot_type in all({pea_shots, flame_shots}) do
+    for shot in all(shot_type) do
+      if collides_with(enemy, shot) then
+        return true
+      end
+    end
+  end
+
+  return false
+end
+
+function kill_enemy(enemy)
+  enemy.is_alive = false
+  explode(enemy)
+end
+
+function die()
+  ship.is_alive = false
+end
+
+function explode(box)
+  add(explosions, {
+    life = #explosion_frames,
+    i = 1,
+    x = box.x,
+    y = box.y,
+  })
+end
+
 ---
 -- math
 
@@ -258,4 +350,11 @@ function distributor(n1, n2, x1, x2)
     local y = a*x + b
     return flr(y+0.5)
   end
+end
+
+function collides_with(a, b)
+  return a.x < b.x + b.w and
+     a.x + a.w > b.x and
+     a.y < b.y + b.h and
+     a.h + a.y > b.y
 end
