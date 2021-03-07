@@ -22,17 +22,27 @@ ship = {
   da = 0.05,
 }
 
+frame_counter = 0
+
 ship_frames = {41, 40, 39, 38, 37}
+pea_shots = {}
+flame_shots = {}
 
 ---
 -- main
 
 function _init()
-  compute_frame_index = distributor(1, 5, -0.25, 0.25)
+  ship_frame_index_from_angle = distributor(1, 5, -0.25, 0.25)
   stars = {}
   for i=1,20 do
-    add(stars, {dy = rnd(1), tile = 23+flr(rnd(3)), x= rnd(128), y = rnd(128)})
+    add(stars, {
+      dy = rnd(1),
+      tile = 23 + flr(rnd(3)),
+      x = rnd(128),
+      y = rnd(128)
+    })
   end
+  ship.shoot = pea_shoot
 end
 
 function _draw()
@@ -44,10 +54,13 @@ function _draw()
   -- line(10, 64, 53, 64, lcs[lc])
   -- draw_angle(ship.a)
 
+  draw_ship_shots()
+  draw_hud()
   draw_ship(ship)
 end
 
 function _update()
+  frame_counter = frame_counter + 1
   fc = fc + .5
   if fc >= 1 then
     fc = 0
@@ -81,23 +94,66 @@ function _update()
   if btn(3) then
     ship.y = ship.y + ship.dy
   end
+
+  if btnp(4) then
+    if ship.shoot == pea_shoot then
+      ship.shoot = flame_shoot
+    else
+      ship.shoot = pea_shoot
+    end
+  end
+  if btn(5) then
+    ship.shoot()
+  end
+
+  update_ship_shots()
   update_angle(ship)
   update_stars()
 end
 
 ---
--- core
+-- draw & update functions
 
 function draw_angle(a)
   local x, y = 5, 5
   local r = 5
-  circ(x,y,r,10)
-  line(x,y,x+r*sin(a), y-r*cos(a))
+  circ(x, y, r, 10)
+  line(x, y, x + r*sin(a), y - r*cos(a))
+end
+
+function draw_hud()
+  local dx = 0
+  local x = 109
+  local y = 5
+  local w = 7
+  local h = 12
+  spr(pea_shot.tile, 112, 9)
+  spr(flame_shot.tile, 120, 8)
+  if ship.shoot == flame_shoot then
+    x = x + 8
+  end
+  rect(x + 1, y + 1, x + w + 1, y + h + 1, 2)
+  rect(x, y, x + w, y + h, 8)
 end
 
 function draw_ship(ship)
-  ship_frame_index = compute_frame_index(ship.a)
-  spr(ship_frames[ship_frame_index], ship.x, ship.y, 1, 2)
+  local i = ship_frame_index_from_angle(ship.a)
+  spr(ship_frames[i], ship.x, ship.y, 1, 2)
+end
+
+function draw_ship_shots()
+  for shot in all(pea_shots) do
+    draw_shot(shot)
+  end
+  for shot in all(flame_shots) do
+    draw_shot(shot)
+  end
+end
+
+function draw_shot(shot)
+  if ((frame_counter + shot.age) % shot.rounds) == 0 then
+    spr(shot.tile, shot.x, shot.y)
+  end
 end
 
 function draw_stars()
@@ -128,6 +184,21 @@ function update_angle(ship)
   end
 end
 
+function update_ship_shots()
+  for shot in all(pea_shots) do
+    update_shot(shot)
+  end
+
+  for shot in all(flame_shots) do
+    update_shot(shot)
+  end
+end
+
+function update_shot(shot)
+  shot.y = shot.y + shot.dy
+  shot.age = shot.age + 1
+end
+
 function update_stars()
   for star in all(stars) do
     star.y = star.y + star.dy
@@ -135,6 +206,45 @@ function update_stars()
       star.y = 0
     end
   end
+end
+
+---
+-- gameplay
+
+pea_shot = {
+  max_shots = 6,
+  tile = 6,
+  rounds = 2,
+  dy = -7,
+}
+pea_shot.__index = pea_shot
+
+function pea_shoot()
+  local shot = {
+    x = ship.x+2,
+    y = ship.y,
+    age = 0,
+  }
+  setmetatable(shot, pea_shot)
+  add(pea_shots, shot)
+end
+
+flame_shot = {
+    max_shots = 99,
+    tile = 5,
+    rounds = 2,
+    dy = -10,
+}
+flame_shot.__index = flame_shot
+
+function flame_shoot()
+  local shot = {
+    x = ship.x+2,
+    y = ship.y,
+    age = 0,
+  }
+  setmetatable(shot, flame_shot)
+  add(flame_shots, shot)
 end
 
 ---
