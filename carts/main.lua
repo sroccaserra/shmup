@@ -13,19 +13,23 @@ lc = 1
 lcs = {8, 11, 12}
 
 ship = {
-  f = 35,
   x = 10,
   dx = 1,
   vx = 0,
   y = 10,
   dy = 1,
-  vy = 0,
   a = 0,
   da = 0.05,
 }
 
+ship_frames = {41, 40, 39, 38, 37}
+
 ---
 -- main
+
+function _init()
+  compute_frame_index = distributor(1, 5, -0.25, 0.25)
+end
 
 function _draw()
   cls()
@@ -35,9 +39,9 @@ function _draw()
   line(10, 63, 53, 63, lcs[lc])
   line(10, 64, 53, 64, lcs[lc])
 
-  draw_angle(ship)
+  draw_angle(ship.a)
 
-  spr(ship.f, ship.x, ship.y, 1, 2)
+  draw_ship(ship)
 end
 
 function _update()
@@ -62,20 +66,17 @@ function _update()
   if btn(0) then
     ship.vx = - ship.dx
     ship.x = ship.x + ship.vx
-    ship.f = 34
   elseif btn(1) then
     ship.vx = ship.dx
     ship.x = ship.x + ship.vx
-    ship.f = 36
   else
     ship.vx = 0
-    ship.f = 35
   end
   if btn(2) then
-    ship.y = ship.y - 1
+    ship.y = ship.y - ship.dy
   end
   if btn(3) then
-    ship.y = ship.y + 1
+    ship.y = ship.y + ship.dy
   end
   update_angle(ship)
 end
@@ -83,11 +84,16 @@ end
 ---
 -- core
 
-function draw_angle(ship)
+function draw_angle(a)
   local x, y = 5, 5
   local r = 5
   circ(x,y,r,10)
-  line(x,y,x+r*sin(ship.a), y-r*cos(ship.a))
+  line(x,y,x+r*sin(a), y-r*cos(a))
+end
+
+function draw_ship(ship)
+  ship_frame_index = compute_frame_index(ship.a)
+  spr(ship_frames[ship_frame_index], ship.x, ship.y, 1, 2)
 end
 
 function update_angle(ship)
@@ -109,5 +115,18 @@ function update_angle(ship)
     ship.a = 0.25
   elseif (ship.a < -0.25) then
     ship.a = -0.25
+  end
+end
+
+---
+-- math
+
+function distributor(n1, n2, x1, x2)
+  local a = (n2 - n1) / (x2 - x1)
+  local b = n2 - a*x2
+
+  return function(x)
+    local y = a*x + b
+    return flr(y+0.5)
   end
 end
