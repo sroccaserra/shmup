@@ -13,10 +13,10 @@ lc = 1
 lcs = {8, 11, 12}
 
 ship = {
-  x = 10,
+  x = 60,
   dx = 1,
   vx = 0,
-  y = 10,
+  y = 128*3/5,
   dy = 1,
   a = 0,
   da = 0.05,
@@ -29,17 +29,20 @@ ship_frames = {41, 40, 39, 38, 37}
 
 function _init()
   compute_frame_index = distributor(1, 5, -0.25, 0.25)
+  stars = {}
+  for i=1,20 do
+    add(stars, {dy = rnd(1), tile = 23+flr(rnd(3)), x= rnd(128), y = rnd(128)})
+  end
 end
 
 function _draw()
   cls()
+  draw_stars()
+  map()
 
-  spr(n,60,60)
-
-  line(10, 63, 53, 63, lcs[lc])
-  line(10, 64, 53, 64, lcs[lc])
-
-  draw_angle(ship.a)
+  -- spr(n,60,60)
+  -- line(10, 64, 53, 64, lcs[lc])
+  -- draw_angle(ship.a)
 
   draw_ship(ship)
 end
@@ -79,6 +82,7 @@ function _update()
     ship.y = ship.y + ship.dy
   end
   update_angle(ship)
+  update_stars()
 end
 
 ---
@@ -94,6 +98,12 @@ end
 function draw_ship(ship)
   ship_frame_index = compute_frame_index(ship.a)
   spr(ship_frames[ship_frame_index], ship.x, ship.y, 1, 2)
+end
+
+function draw_stars()
+  for star in all(stars) do
+    spr(star.tile, star.x, star.y)
+  end
 end
 
 function update_angle(ship)
@@ -115,6 +125,15 @@ function update_angle(ship)
     ship.a = 0.25
   elseif (ship.a < -0.25) then
     ship.a = -0.25
+  end
+end
+
+function update_stars()
+  for star in all(stars) do
+    star.y = star.y + star.dy
+    if star.y > 128 then
+      star.y = 0
+    end
   end
 end
 
