@@ -94,12 +94,24 @@ function _update()
   else
     ship.vx = 0
   end
+  if ship.x < 0 then
+    ship.x = 0
+  elseif ship.x > 121 then
+    ship.x = 121
+  end
+
   if btn(2) then
     ship.y = ship.y - ship.dy
   end
   if btn(3) then
     ship.y = ship.y + ship.dy
   end
+  if ship.y < 0 then
+    ship.y = 0
+  elseif ship.y > 120 then
+    ship.y = 120
+  end
+
 
   if btnp(4) then
     if ship.shoot == pea_shoot then
@@ -148,8 +160,6 @@ function draw_hud()
   end
   rect(x + 1, y + 1, x + w + 1, y + h + 1, 2)
   rect(x, y, x + w, y + h, 8)
-  print(#pea_shots)
-  print(#flame_shots)
 end
 
 function draw_ship(ship)
