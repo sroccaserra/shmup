@@ -151,6 +151,13 @@ function draw_hud()
 end
 
 function draw_ship(ship)
+  local glow_y
+  if 0 == frame_counter % 2 then
+    glow_y = 8
+  else
+    glow_y = 7
+  end
+  spr(8, ship.x+2, ship.y+glow_y)
   local i = ship_frame_index_from_angle(ship.a)
   spr(ship_frames[i], ship.x, ship.y)
 end
