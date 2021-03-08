@@ -5,12 +5,12 @@
 --   - dx is for delta x, a base constant increment used to compute vx
 --   - da is a base constant angular increment (delta alpha)
 
-n = 1
-x = 0
-fc = 0
+blinking_bullet_tile = 1
+blinking_bullet_counter = 0
+laser_counter = 0
 
-lc = 1
-lcs = {8, 11, 12}
+laser_colors = {8, 11, 12}
+laser_color_index = 1
 
 ship = {
   x = 60,
@@ -67,8 +67,9 @@ function _draw()
   draw_stars()
   map()
 
-  -- spr(n,60,60)
-  -- line(10, 64, 53, 64, lcs[lc])
+  -- spr(blinking_bullet_tile,60,60)
+  -- line(10, 64, 53, 64, laser_colors[laser_color_index])
+
   -- draw_angle(ship.a)
 
   draw_ship_shots()
@@ -80,23 +81,9 @@ end
 
 function _update()
   frame_counter = frame_counter + 1
-  fc = fc + .5
-  if fc >= 1 then
-    fc = 0
-    lc = lc + 1
-    if lc > #lcs then
-      lc = 1
-    end
-  end
 
-  x = x + .5
-  if x >= 1 then
-    n = n + 1
-    x = 0
-  end
-  if n > 4 then
-    n = 1
-  end
+  -- update_laser()
+  -- update_blinking_bullet()
 
   if btn(0) then
     ship.vx = - ship.dx
@@ -194,6 +181,32 @@ function draw_enemy(enemy)
     return
   end
   spr(enemy.tile, enemy.x, enemy.y, 2, 2)
+end
+
+function update_laser()
+  laser_counter = laser_counter + .5
+
+  if laser_counter >= 1 then
+    laser_counter = 0
+    laser_color_index = laser_color_index + 1
+
+    if laser_color_index > #laser_colors then
+      laser_color_index = 1
+    end
+  end
+end
+
+function update_blinking_bullet()
+  blinking_bullet_counter = blinking_bullet_counter + .5
+
+  if blinking_bullet_counter >= 1 then
+    blinking_bullet_tile = blinking_bullet_tile + 1
+    blinking_bullet_counter = 0
+  end
+
+  if blinking_bullet_tile > 4 then
+    blinking_bullet_tile = 1
+  end
 end
 
 function update_angle(ship)
