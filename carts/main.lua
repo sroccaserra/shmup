@@ -148,6 +148,8 @@ function draw_hud()
   end
   rect(x + 1, y + 1, x + w + 1, y + h + 1, 2)
   rect(x, y, x + w, y + h, 8)
+  print(#pea_shots)
+  print(#flame_shots)
 end
 
 function draw_ship(ship)
@@ -249,17 +251,20 @@ end
 
 function update_ship_shots()
   for shot in all(pea_shots) do
-    update_shot(shot)
+    update_shot(shot, pea_shots)
   end
 
   for shot in all(flame_shots) do
-    update_shot(shot)
+    update_shot(shot, flame_shots)
   end
 end
 
-function update_shot(shot)
+function update_shot(shot, shot_table)
   shot.y = shot.y + shot.dy
   shot.age = shot.age + 1
+  if shot.y < -10 then
+    del(shot_table, shot)
+  end
 end
 
 function update_stars()
