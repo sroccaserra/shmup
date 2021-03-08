@@ -5,3 +5,7 @@ Shot change demo:
 Shoot enemy demo:
 
 ![enemy demo](images/shmup_3.gif?raw=true)
+
+Cart:
+
+![cart](carts/shmup.p8.png)

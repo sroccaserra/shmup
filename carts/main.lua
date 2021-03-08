@@ -1,5 +1,9 @@
+-- ~shmup~
+-- by sroccaserra
+
 ---
 -- globals
+
 -- convention:
 --   - vx is for x velocity, a variable movement along x axis
 --   - dx is for delta x, a base constant increment used to compute vx
