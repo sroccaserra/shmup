@@ -305,6 +305,10 @@ pea_shot = {
 pea_shot.__index = pea_shot
 
 function pea_shoot()
+  if #pea_shots >= 6 then
+    return
+  end
+
   local shot = {
     x = ship.x+2,
     y = ship.y,
