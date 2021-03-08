@@ -22,6 +22,12 @@ ship = {
   a = 0,
   da = 0.05,
   h = 8,
+  box = {
+    dx = 1,
+    dy = 1,
+    w = 4,
+    h = 6,
+  },
   is_alive = true,
 }
 
@@ -33,6 +39,12 @@ enemy = {
   y = -100,
   dy = 2,
   h = 8,
+  box = {
+    dx = 5,
+    dy = 5,
+    w = 5,
+    h = 6,
+  },
   is_alive = true,
 }
 
@@ -77,6 +89,15 @@ function _draw()
   draw_explosions()
   draw_hud()
   draw_ship(ship)
+--  draw_hit_box(ship)
+--  draw_hit_box(enemy)
+--  for shot in all(pea_shots) do
+--    draw_hit_box(shot)
+--  end
+--  for shot in all(flame_shots) do
+--    draw_hit_box(shot)
+--  end
+--  print(collides_with(ship, enemy))
 end
 
 function _update()
@@ -161,6 +182,12 @@ function draw_hud()
   rect(x + 1, y + 1, x + w + 1, y + h + 1, 2)
   rect(x, y, x + w, y + h, 8)
 end
+
+-- function draw_hit_box(boxed)
+--   local x1 = boxed.x + boxed.box.dx
+--   local y1 = boxed.y + boxed.box.dy
+--   rect(x1, y1, x1 + boxed.box.w, y1 + boxed.box.h, 11)
+-- end
 
 function draw_ship(ship)
   local glow_y
@@ -309,8 +336,12 @@ pea_shot = {
   tile = 6,
   rounds = 2,
   dy = -7,
-  w = 3,
-  h = 8,
+  box = {
+    dx = 0,
+    dy = 1,
+    w = 2,
+    h = 5,
+  },
 }
 pea_shot.__index = pea_shot
 
@@ -333,8 +364,12 @@ flame_shot = {
     tile = 5,
     rounds = 2,
     dy = -10,
-    w = 3,
-    h = 8,
+    box = {
+      dx = 0,
+      dy = 1,
+      w = 2,
+      h = 8,
+    },
 }
 flame_shot.__index = flame_shot
 
@@ -369,12 +404,12 @@ function die()
   ship.is_alive = false
 end
 
-function explode(box)
+function explode(boxed)
   add(explosions, {
     life = #explosion_frames,
     i = 1,
-    x = box.x,
-    y = box.y,
+    x = boxed.x + boxed.box.dx,
+    y = boxed.y + boxed.box.dy,
   })
 end
 
@@ -392,8 +427,12 @@ function distributor(n1, n2, x1, x2)
 end
 
 function collides_with(a, b)
-  return a.x < b.x + b.w and
-     a.x + a.w > b.x and
-     a.y < b.y + b.h and
-     a.h + a.y > b.y
+  local xa = a.x + a.box.dx
+  local ya = a.y + a.box.dy
+  local xb = b.x + b.box.dx
+  local yb = b.y + b.box.dy
+  return xa < xb + b.box.w and
+     xa + a.box.w > xb and
+     ya < yb + b.box.h and
+     a.box.h + ya > yb
 end
