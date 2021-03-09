@@ -11,10 +11,15 @@
 
 blinking_bullet_tile = 1
 blinking_bullet_counter = 0
-laser_counter = 0
 
+laser_counter = 0
 laser_colors = {8, 11, 12}
 laser_color_index = 1
+
+frame_counter = 0
+
+ship_frames = {41, 40, 39, 38, 37}
+explosion_frames = {53, 54, 55, 56, 57, 58, 59, 60, 61}
 
 ship = {
   x = 60,
@@ -35,37 +40,18 @@ ship = {
   is_alive = true,
 }
 
-enemy = {
-  tile = 27,
-  x = 0,
-  dx = .5,
-  w = 8,
-  y = -100,
-  dy = 2,
-  h = 8,
-  box = {
-    dx = 5,
-    dy = 5,
-    w = 5,
-    h = 6,
-  },
-  is_alive = true,
-}
-
-frame_counter = 0
-
-ship_frames = {41, 40, 39, 38, 37}
-pea_shots = {}
-flame_shots = {}
-
-explosion_frames = {53, 54, 55, 56, 57, 58, 59, 60, 61}
-explosions = {}
-
 ---
 -- main
 
 function _init()
   ship_frame_index_from_angle = distributor(1, 5, -0.25, 0.25)
+  ship.shoot = pea_shoot
+
+  pea_shots = {}
+  flame_shots = {}
+  enemies = {}
+  explosions = {}
+
   stars = {}
   for i=1,20 do
     add(stars, {
@@ -75,7 +61,8 @@ function _init()
       y = rnd(128)
     })
   end
-  ship.shoot = pea_shoot
+
+  spawn_enemy()
 end
 
 function _draw()
@@ -89,7 +76,7 @@ function _draw()
   -- draw_angle(ship.a)
 
   draw_ship_shots()
-  draw_enemy(enemy)
+  draw_enemies()
   draw_explosions()
   draw_hud()
   draw_ship(ship)
@@ -149,7 +136,7 @@ function _update()
     ship.shoot()
   end
 
-  update_enemy(enemy)
+  update_enemies()
   update_explosions()
   update_ship_shots()
   update_angle(ship)
@@ -226,11 +213,10 @@ function draw_stars()
   end
 end
 
-function draw_enemy(enemy)
-  if not enemy.is_alive then
-    return
+function draw_enemies()
+  for enemy in all(enemies) do
+    spr(enemy.tile, enemy.x, enemy.y, 2, 2)
   end
-  spr(enemy.tile, enemy.x, enemy.y, 2, 2)
 end
 
 function update_laser()
@@ -317,18 +303,16 @@ function update_stars()
   end
 end
 
-function update_enemy(enemy)
-  if not enemy.is_alive then
-    return
-  end
+function update_enemies()
+  for enemy in all(enemies) do
+    enemy.x = enemy.x + enemy.dx
+    enemy.y = enemy.y + enemy.dy
 
-  enemy.x = enemy.x + enemy.dx
-  enemy.y = enemy.y + enemy.dy
-
-  if is_hit(enemy) then
-    kill_enemy(enemy)
-  elseif collides_with(enemy, ship) then
-    die()
+    if is_hit(enemy) then
+      kill_enemy(enemy)
+    elseif collides_with(enemy, ship) then
+      die()
+    end
   end
 end
 
@@ -387,6 +371,30 @@ function flame_shoot()
   add(flame_shots, shot)
 end
 
+enemy = {
+  tile = 27,
+  w = 8,
+  h = 8,
+  box = {
+    dx = 5,
+    dy = 5,
+    w = 5,
+    h = 6,
+  },
+}
+enemy.__index = enemy
+
+function spawn_enemy()
+  local instance = {
+    x = 0,
+    dx = .5,
+    y = -100,
+    dy = 2,
+  }
+  setmetatable(instance, enemy)
+  add(enemies, instance)
+end
+
 function is_hit(enemy)
   for shot_type in all({pea_shots, flame_shots}) do
     for shot in all(shot_type) do
@@ -400,7 +408,7 @@ function is_hit(enemy)
 end
 
 function kill_enemy(enemy)
-  enemy.is_alive = false
+  del(enemies, enemy)
   explode(enemy)
 end
 
