@@ -272,6 +272,11 @@ end
 
 function update_enemies()
   for enemy in all(enemies) do
+    if enemy.has_entered and is_off_screen(enemy) then
+      del(enemies, enemy)
+      break
+    end
+
     enemy.x = enemy.x + enemy.dx
     enemy.y = enemy.y + enemy.dy
 
@@ -281,9 +286,14 @@ function update_enemies()
       die()
     end
 
+    local is_in_view = is_in_screen(enemy)
+    if is_in_view then
+      enemy.has_entered = true
+    end
+
     enemy.next_shot = enemy.next_shot - 1
-    if enemy.next_shot <= 0 then
-      fire_bullet(enemy.x, enemy.y, 0, 3)
+    if enemy.next_shot <= 0 and is_in_view then
+      fire_bullet_from_to(enemy.x, enemy.y, ship.x, ship.y)
       enemy.next_shot = enemy.fire_rate
     end
   end
@@ -293,7 +303,12 @@ function update_bullets()
   for bullet in all(bullets) do
     bullet.x = bullet.x + bullet.dx
     bullet.y = bullet.y + bullet.dy
-    bullet.tile_counter = bullet.tile_counter + 1
+    if 0 == (frame_counter % 2) then
+      bullet.tile_counter = bullet.tile_counter + 1
+    end
+    if is_off_screen(bullet) then
+      del(bullets, bullet)
+    end
   end
 end
 
@@ -373,6 +388,7 @@ function spawn_enemy()
     y = -10,
     dy = 1,
     next_shot = 60,
+    has_entered = false,
   }
   setmetatable(instance, enemy)
   add(enemies, instance)
@@ -397,6 +413,7 @@ end
 
 bullet_tiles = {16, 17, 18, 19}
 bullet = {
+  speed = 3,
   box = {
     dx = 0,
     dy = 0,
@@ -406,12 +423,13 @@ bullet = {
 }
 bullet.__index = bullet
 
-function fire_bullet(x, y, dx, dy)
+function fire_bullet_from_to(x1, y1, x2, y2)
+  local norm = sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1))
   local instance = {
-    x = x,
-    y = y,
-    dx = dx,
-    dy = dy,
+    x = x1,
+    y = y1,
+    dx = bullet.speed*(x2 - x1)/norm,
+    dy = bullet.speed*(y2 - y1)/norm,
     tile_counter = 0,
   }
   setmetatable(instance, bullet)
@@ -454,4 +472,24 @@ function collides_with(a, b)
      xa + a.box.w > xb and
      ya < yb + b.box.h and
      a.box.h + ya > yb
+end
+
+function is_in_screen(boxed)
+  local x1 = boxed.x + boxed.box.dx
+  local y1 = boxed.y + boxed.box.dy
+  local x2 = x1 + boxed.box.w
+  local y2 = y1 + boxed.box.h
+
+  return x1 > 0 and y1 > 0 and
+         x2 < 127 and y2 < 127
+end
+
+function is_off_screen(boxed)
+  local x1 = boxed.x + boxed.box.dx
+  local y1 = boxed.y + boxed.box.dy
+  local x2 = x1 + boxed.box.w
+  local y2 = y1 + boxed.box.h
+
+  return x1 > 128 or y1 > 128 or
+         x2 < 0 or y2 < 0
 end
