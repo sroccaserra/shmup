@@ -18,11 +18,12 @@ explosion_frames = {53, 54, 55, 56, 57, 58, 59, 60, 61}
 
 ship = {
   x = 60,
-  dx = 1,
+  dx = 2,
   vx = 0,
   w = 8,
   y = 128*3/5,
-  dy = 1,
+  dy = 2,
+  start_dy = 1,
   a = 0,
   da = 0.05,
   h = 8,
@@ -75,7 +76,7 @@ end
 
 function _update()
   frame_counter = frame_counter + 1
-  if 0 == frame_counter % (3 * 30) then
+  if 0 == frame_counter % (3 * 10) then
     spawn_enemy()
   end
 
@@ -160,6 +161,9 @@ end
 
 function draw_enemies()
   for enemy in all(enemies) do
+    if 0 == (frame_counter % 2) then
+      spr(enemy.tile-1, enemy.x+6, enemy.y)
+    end
     spr(enemy.tile, enemy.x, enemy.y, 2, 2)
   end
 end
@@ -175,7 +179,7 @@ end
 
 function update_ship(input)
   if ship.starting_frames > 0 then
-    ship.y = ship.y - ship.dy
+    ship.y = ship.y - ship.start_dy
     ship.starting_frames = ship.starting_frames - 1
     return
   end
@@ -394,7 +398,7 @@ enemy = {
   tile = 27,
   w = 8,
   h = 8,
-  fire_rate = 30,
+  fire_rate = 20,
   box = {
     dx = 5,
     dy = 5,
@@ -406,13 +410,17 @@ enemy.__index = enemy
 
 function spawn_enemy()
   local instance = {
-    x = 0,
-    dx = 1,
+    x = rnd(128),
     y = -10,
     dy = 1,
-    next_shot = 60,
+    next_shot = 40,
     has_entered = false,
   }
+  if instance.x > 60 then
+    instance.dx = -1
+  else
+    instance.dx = 1
+  end
   setmetatable(instance, enemy)
   add(enemies, instance)
 end
