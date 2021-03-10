@@ -36,6 +36,8 @@ ship = {
   starting_frames = 0,
 }
 
+camera_y = 128
+
 ---
 -- main
 
@@ -64,7 +66,12 @@ end
 function _draw()
   cls()
   draw_stars()
+
+  camera(0, camera_y)
   map()
+  camera(0, camera_y+256)
+  map()
+  camera()
 
   draw_ship_shots()
   draw_enemies()
@@ -75,6 +82,11 @@ function _draw()
 end
 
 function _update()
+  camera_y = camera_y - 0.5
+  if camera_y == -128 then
+    camera_y = 128
+  end
+
   frame_counter = frame_counter + 1
   if 0 == frame_counter % (3 * 10) then
     spawn_enemy()

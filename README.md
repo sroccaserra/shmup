@@ -1,6 +1,6 @@
 Random enemy waves demo:
 
-![enemy demo](images/shmup_4.gif?raw=true)
+![enemy demo](images/shmup_5.gif?raw=true)
 
 Shot change demo:
 
