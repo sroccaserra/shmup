@@ -9,13 +9,6 @@
 --   - dx is for delta x, a base constant increment used to compute vx
 --   - da is a base constant angular increment (delta alpha)
 
-blinking_bullet_tile = 1
-blinking_bullet_counter = 0
-
-laser_counter = 0
-laser_colors = {8, 11, 12}
-laser_color_index = 1
-
 frame_counter = 0
 
 ship_frames = {41, 40, 39, 38, 37}
@@ -70,32 +63,15 @@ function _draw()
   draw_stars()
   map()
 
-  -- spr(blinking_bullet_tile,60,60)
-  -- line(10, 64, 53, 64, laser_colors[laser_color_index])
-
-  -- draw_angle(ship.a)
-
   draw_ship_shots()
   draw_enemies()
   draw_explosions()
   draw_hud()
-  draw_ship(ship)
---  draw_hit_box(ship)
---  draw_hit_box(enemy)
---  for shot in all(pea_shots) do
---    draw_hit_box(shot)
---  end
---  for shot in all(flame_shots) do
---    draw_hit_box(shot)
---  end
---  print(collides_with(ship, enemy))
+  draw_ship()
 end
 
 function _update()
   frame_counter = frame_counter + 1
-
-  -- update_laser()
-  -- update_blinking_bullet()
 
   if btn(0) then
     ship.vx = - ship.dx
@@ -139,19 +115,12 @@ function _update()
   update_enemies()
   update_explosions()
   update_ship_shots()
-  update_angle(ship)
+  update_ship_angle()
   update_stars()
 end
 
 ---
 -- draw & update functions
-
-function draw_angle(a)
-  local x, y = 5, 5
-  local r = 5
-  circ(x, y, r, 10)
-  line(x, y, x + r*sin(a), y - r*cos(a))
-end
 
 function draw_explosions()
   for explosion in all(explosions) do
@@ -174,13 +143,7 @@ function draw_hud()
   rect(x, y, x + w, y + h, 8)
 end
 
--- function draw_hit_box(boxed)
---   local x1 = boxed.x + boxed.box.dx
---   local y1 = boxed.y + boxed.box.dy
---   rect(x1, y1, x1 + boxed.box.w, y1 + boxed.box.h, 11)
--- end
-
-function draw_ship(ship)
+function draw_ship()
   local glow_y
   if 0 == frame_counter % 2 then
     glow_y = 8
@@ -219,33 +182,7 @@ function draw_enemies()
   end
 end
 
-function update_laser()
-  laser_counter = laser_counter + .5
-
-  if laser_counter >= 1 then
-    laser_counter = 0
-    laser_color_index = laser_color_index + 1
-
-    if laser_color_index > #laser_colors then
-      laser_color_index = 1
-    end
-  end
-end
-
-function update_blinking_bullet()
-  blinking_bullet_counter = blinking_bullet_counter + .5
-
-  if blinking_bullet_counter >= 1 then
-    blinking_bullet_tile = blinking_bullet_tile + 1
-    blinking_bullet_counter = 0
-  end
-
-  if blinking_bullet_tile > 4 then
-    blinking_bullet_tile = 1
-  end
-end
-
-function update_angle(ship)
+function update_ship_angle()
   local da = ship.da
   if (ship.vx < 0) then
     ship.a = ship.a + da
