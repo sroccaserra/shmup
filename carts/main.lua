@@ -89,8 +89,8 @@ function _update()
 
   update_ship(input)
 
-  update_enemies()
   update_bullets()
+  update_enemies()
   update_explosions()
   update_ship_shots()
   update_stars()
@@ -293,7 +293,9 @@ function update_enemies()
 
     enemy.next_shot = enemy.next_shot - 1
     if enemy.next_shot <= 0 and is_in_view then
-      fire_bullet_from_to(enemy.x, enemy.y, ship.x, ship.y)
+      local xe, ye = center(enemy)
+      local xs, ys = center(ship)
+      fire_bullet_from_to(xe, ye, xs, ys)
       enemy.next_shot = enemy.fire_rate
     end
   end
@@ -426,8 +428,8 @@ bullet.__index = bullet
 function fire_bullet_from_to(x1, y1, x2, y2)
   local norm = sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1))
   local instance = {
-    x = x1,
-    y = y1,
+    x = x1 - (bullet.box.dx + bullet.box.w/2),
+    y = y1 - (bullet.box.dy + bullet.box.h/2),
     dx = bullet.speed*(x2 - x1)/norm,
     dy = bullet.speed*(y2 - y1)/norm,
     tile_counter = 0,
@@ -472,6 +474,20 @@ function collides_with(a, b)
      xa + a.box.w > xb and
      ya < yb + b.box.h and
      a.box.h + ya > yb
+end
+
+function box(boxed)
+  local x1 = boxed.x + boxed.box.dx
+  local y1 = boxed.y + boxed.box.dy
+  local x2 = x1 + boxed.box.w
+  local y2 = y1 + boxed.box.h
+
+  return x1, y1, x2, y2
+end
+
+function center(boxed)
+  local x1, y1, x2, y2 = box(boxed)
+  return (x1 + x2)/2, (y1 + y2)/2
 end
 
 function is_in_screen(boxed)
