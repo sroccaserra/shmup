@@ -8,6 +8,8 @@
 --   - vx is for x velocity, a variable movement along x axis
 --   - dx is for delta x, a base constant increment used to compute vx
 --   - da is a base constant angular increment (delta alpha)
+--   - shots are the ship's shots
+--   - bullets are ennemies' bullets
 
 frame_counter = 0
 
@@ -43,6 +45,7 @@ function _init()
   pea_shots = {}
   flame_shots = {}
   enemies = {}
+  bullets = {}
   explosions = {}
 
   stars = {}
@@ -64,8 +67,9 @@ function _draw()
   draw_ship_shots()
   draw_enemies()
   draw_explosions()
-  draw_hud()
   draw_ship()
+  draw_bullets()
+  draw_hud()
 end
 
 function _update()
@@ -86,6 +90,7 @@ function _update()
   update_ship(input)
 
   update_enemies()
+  update_bullets()
   update_explosions()
   update_ship_shots()
   update_stars()
@@ -151,6 +156,12 @@ end
 function draw_enemies()
   for enemy in all(enemies) do
     spr(enemy.tile, enemy.x, enemy.y, 2, 2)
+  end
+end
+
+function draw_bullets()
+  for bullet in all(bullets) do
+    spr(bullet_tiles[1 + bullet.tile_counter % #bullet_tiles], bullet.x, bullet.y)
   end
 end
 
@@ -269,6 +280,20 @@ function update_enemies()
     elseif collides_with(enemy, ship) then
       die()
     end
+
+    enemy.next_shot = enemy.next_shot - 1
+    if enemy.next_shot <= 0 then
+      fire_bullet(enemy.x, enemy.y, 0, 3)
+      enemy.next_shot = enemy.fire_rate
+    end
+  end
+end
+
+function update_bullets()
+  for bullet in all(bullets) do
+    bullet.x = bullet.x + bullet.dx
+    bullet.y = bullet.y + bullet.dy
+    bullet.tile_counter = bullet.tile_counter + 1
   end
 end
 
@@ -331,6 +356,7 @@ enemy = {
   tile = 27,
   w = 8,
   h = 8,
+  fire_rate = 30,
   box = {
     dx = 5,
     dy = 5,
@@ -346,6 +372,7 @@ function spawn_enemy()
     dx = 1,
     y = -10,
     dy = 1,
+    next_shot = 60,
   }
   setmetatable(instance, enemy)
   add(enemies, instance)
@@ -366,6 +393,30 @@ end
 function kill_enemy(enemy)
   del(enemies, enemy)
   explode(enemy)
+end
+
+bullet_tiles = {16, 17, 18, 19}
+bullet = {
+  box = {
+    dx = 0,
+    dy = 0,
+    w = 5,
+    h = 5,
+  }
+}
+bullet.__index = bullet
+
+function fire_bullet(x, y, dx, dy)
+  local instance = {
+    x = x,
+    y = y,
+    dx = dx,
+    dy = dy,
+    tile_counter = 0,
+  }
+  setmetatable(instance, bullet)
+
+  add(bullets, instance)
 end
 
 function die()
