@@ -54,8 +54,6 @@ function _init()
       y = rnd(128)
     })
   end
-
-  spawn_enemy()
 end
 
 function _draw()
@@ -72,6 +70,9 @@ end
 
 function _update()
   frame_counter = frame_counter + 1
+  if 0 == frame_counter % (3 * 30) then
+    spawn_enemy()
+  end
 
   local input = {
     left = btn(0),
@@ -342,9 +343,9 @@ enemy.__index = enemy
 function spawn_enemy()
   local instance = {
     x = 0,
-    dx = .5,
-    y = -100,
-    dy = 2,
+    dx = 1,
+    y = -10,
+    dy = 1,
   }
   setmetatable(instance, enemy)
   add(enemies, instance)
