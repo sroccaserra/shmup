@@ -36,7 +36,7 @@ ship = {
   starting_frames = 0,
 }
 
-camera_y = 128
+camera_y = 320
 
 ---
 -- main
