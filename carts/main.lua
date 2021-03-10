@@ -32,7 +32,7 @@ ship = {
     w = 4,
     h = 6,
   },
-  is_alive = true,
+  starting_frames = 0,
 }
 
 ---
@@ -41,6 +41,7 @@ ship = {
 function _init()
   ship_frame_index_from_angle = distributor(1, 5, -0.25, 0.25)
   ship.shoot = pea_shoot
+  start_life()
 
   pea_shots = {}
   flame_shots = {}
@@ -121,6 +122,10 @@ function draw_hud()
 end
 
 function draw_ship()
+  if ship.starting_frames > 0 and 0 == (frame_counter % 2) then
+    return
+  end
+
   local glow_y
   if 0 == frame_counter % 2 then
     glow_y = 8
@@ -169,6 +174,12 @@ end
 -- Update functions
 
 function update_ship(input)
+  if ship.starting_frames > 0 then
+    ship.y = ship.y - ship.dy
+    ship.starting_frames = ship.starting_frames - 1
+    return
+  end
+
   if input.left then
     ship.vx = - ship.dx
     ship.x = ship.x + ship.vx
@@ -311,11 +322,21 @@ function update_bullets()
     if is_off_screen(bullet) then
       del(bullets, bullet)
     end
+    if collides_with(bullet, ship) then
+      die()
+    end
   end
 end
 
 ---
 -- gameplay
+
+function start_life()
+  ship.starting_frames = 40
+  ship.a = 0
+  ship.x = 60
+  ship.y = 128
+end
 
 pea_shot = {
   max_shots = 6,
@@ -426,6 +447,10 @@ bullet = {
 bullet.__index = bullet
 
 function fire_bullet_from_to(x1, y1, x2, y2)
+  if ship.starting_frames > 0 then
+    return
+  end
+
   local norm = sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1))
   local instance = {
     x = x1 - (bullet.box.dx + bullet.box.w/2),
@@ -440,7 +465,10 @@ function fire_bullet_from_to(x1, y1, x2, y2)
 end
 
 function die()
-  ship.is_alive = false
+  if 0 == ship.starting_frames then
+    explode(ship)
+    start_life()
+  end
 end
 
 function explode(boxed)
