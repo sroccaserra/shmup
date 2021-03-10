@@ -73,54 +73,25 @@ end
 function _update()
   frame_counter = frame_counter + 1
 
-  if btn(0) then
-    ship.vx = - ship.dx
-    ship.x = ship.x + ship.vx
-  elseif btn(1) then
-    ship.vx = ship.dx
-    ship.x = ship.x + ship.vx
-  else
-    ship.vx = 0
-  end
-  if ship.x < 0 then
-    ship.x = 0
-  elseif ship.x > 121 then
-    ship.x = 121
-  end
+  local input = {
+    left = btn(0),
+    right = btn(1),
+    up = btn(2),
+    down = btn(3),
+    shot_change = btnp(4),
+    shoot = btn(5),
+  }
 
-  if btn(2) then
-    ship.y = ship.y - ship.dy
-  end
-  if btn(3) then
-    ship.y = ship.y + ship.dy
-  end
-  if ship.y < 0 then
-    ship.y = 0
-  elseif ship.y > 120 then
-    ship.y = 120
-  end
-
-
-  if btnp(4) then
-    if ship.shoot == pea_shoot then
-      ship.shoot = flame_shoot
-    else
-      ship.shoot = pea_shoot
-    end
-  end
-  if btn(5) then
-    ship.shoot()
-  end
+  update_ship(input)
 
   update_enemies()
   update_explosions()
   update_ship_shots()
-  update_ship_angle()
   update_stars()
 end
 
 ---
--- draw & update functions
+-- Draw functions
 
 function draw_explosions()
   for explosion in all(explosions) do
@@ -180,6 +151,53 @@ function draw_enemies()
   for enemy in all(enemies) do
     spr(enemy.tile, enemy.x, enemy.y, 2, 2)
   end
+end
+
+---
+-- Update functions
+
+function update_ship(input)
+  if input.left then
+    ship.vx = - ship.dx
+    ship.x = ship.x + ship.vx
+  elseif input.right then
+    ship.vx = ship.dx
+    ship.x = ship.x + ship.vx
+  else
+    ship.vx = 0
+  end
+
+  if ship.x < 0 then
+    ship.x = 0
+  elseif ship.x > 121 then
+    ship.x = 121
+  end
+
+  if input.up then
+    ship.y = ship.y - ship.dy
+  end
+  if input.down then
+    ship.y = ship.y + ship.dy
+  end
+  if ship.y < 0 then
+    ship.y = 0
+  elseif ship.y > 120 then
+    ship.y = 120
+  end
+
+
+  if input.shot_change then
+    if ship.shoot == pea_shoot then
+      ship.shoot = flame_shoot
+    else
+      ship.shoot = pea_shoot
+    end
+  end
+  if input.shoot then
+    ship.shoot()
+  end
+
+  update_ship_angle()
 end
 
 function update_ship_angle()
