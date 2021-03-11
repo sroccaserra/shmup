@@ -42,6 +42,8 @@ camera_y = 320
 -- main
 
 function _init()
+  score = 0
+
   ship_frame_index_from_angle = distributor(1, 5, -0.25, 0.25)
   ship.shoot = pea_shoot
   start_life()
@@ -120,6 +122,9 @@ function draw_explosions()
 end
 
 function draw_hud()
+  print(score, 6, 6, 1)
+  print(score, 5, 5, 7)
+
   local dx = 0
   local x = 109
   local y = 5
@@ -450,6 +455,7 @@ function is_hit(enemy)
 end
 
 function kill_enemy(enemy)
+  score = score + 10
   del(enemies, enemy)
   explode(enemy)
 end
