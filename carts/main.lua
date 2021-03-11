@@ -211,11 +211,7 @@ function update_ship(input)
     ship.vx = 0
   end
 
-  if ship.x < 0 then
-    ship.x = 0
-  elseif ship.x > 121 then
-    ship.x = 121
-  end
+  ship.x = mid(0, ship.x, 121)
 
   if input.up then
     ship.y = ship.y - ship.dy
@@ -223,12 +219,8 @@ function update_ship(input)
   if input.down then
     ship.y = ship.y + ship.dy
   end
-  if ship.y < 0 then
-    ship.y = 0
-  elseif ship.y > 120 then
-    ship.y = 120
-  end
 
+  ship.y = mid(0, ship.y, 120)
 
   if input.shot_change then
     if ship.shoot == pea_shoot then
@@ -259,11 +251,8 @@ function update_ship_angle()
       ship.a = ship.a + da
     end
   end
-  if (ship.a > 0.25) then
-    ship.a = 0.25
-  elseif (ship.a < -0.25) then
-    ship.a = -0.25
-  end
+
+  ship.a = mid(-0.25, ship.a, 0.25)
 end
 
 function update_explosions()
