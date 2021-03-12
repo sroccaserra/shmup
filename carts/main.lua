@@ -20,19 +20,18 @@ ship = {
   x = 60,
   dx = 2,
   vx = 0,
-  w = 8,
+  w = 4,
+
   y = 128*3/5,
   dy = 2,
   start_dy = 1,
+  h = 6,
+
   a = 0,
   da = 0.05,
-  h = 8,
-  box = {
-    dx = 1,
-    dy = 1,
-    w = 4,
-    h = 6,
-  },
+
+  tile_dx = -1,
+  tile_dy = -1,
   starting_frames = 0,
 }
 
@@ -146,13 +145,13 @@ function draw_ship()
 
   local glow_y
   if 0 == frame_counter % 2 then
-    glow_y = 8
-  else
     glow_y = 7
+  else
+    glow_y = 6
   end
-  spr(8, ship.x+2, ship.y+glow_y)
+  spr(8, ship.x + 1, ship.y + glow_y)
   local i = ship_frame_index_from_angle(ship.a)
-  spr(ship_frames[i], ship.x, ship.y)
+  spr(ship_frames[i], ship.x + ship.tile_dx, ship.y + ship.tile_dy)
 end
 
 function draw_ship_shots()
@@ -179,9 +178,9 @@ end
 function draw_enemies()
   for enemy in all(enemies) do
     if 0 == (frame_counter % 2) then
-      spr(enemy.tile-1, enemy.x+6, enemy.y)
+      spr(enemy.tile-1, enemy.x+1, enemy.y+enemy.tile_dy)
     end
-    spr(enemy.tile, enemy.x, enemy.y, 2, 2)
+    spr(enemy.tile, enemy.x + enemy.tile_dx, enemy.y + enemy.tile_dy, 2, 2)
   end
 end
 
@@ -353,12 +352,10 @@ pea_shot = {
   tile = 6,
   rounds = 2,
   dy = -7,
-  box = {
-    dx = 0,
-    dy = 1,
-    w = 2,
-    h = 5,
-  },
+  w = 2,
+  h = 5,
+  tile_dx = 0,
+  tile_dy = -1,
 }
 pea_shot.__index = pea_shot
 
@@ -368,8 +365,8 @@ function pea_shoot()
   end
 
   local shot = {
-    x = ship.x+2,
-    y = ship.y,
+    x = ship.x + 1,
+    y = ship.y - 1,
     age = 0,
   }
   setmetatable(shot, pea_shot)
@@ -381,19 +378,17 @@ flame_shot = {
     tile = 5,
     rounds = 2,
     dy = -10,
-    box = {
-      dx = 0,
-      dy = 1,
-      w = 2,
-      h = 8,
-    },
+    w = 2,
+    h = 8,
+    tile_dx = 0,
+    tile_dy = -1,
 }
 flame_shot.__index = flame_shot
 
 function flame_shoot()
   local shot = {
-    x = ship.x+2,
-    y = ship.y,
+    x = ship.x + 1,
+    y = ship.y - 1,
     age = 0,
   }
   setmetatable(shot, flame_shot)
@@ -402,15 +397,11 @@ end
 
 enemy = {
   tile = 27,
-  w = 8,
-  h = 8,
+  w = 5,
+  h = 6,
   fire_rate = 20,
-  box = {
-    dx = 5,
-    dy = 5,
-    w = 5,
-    h = 6,
-  },
+  tile_dx = -5,
+  tile_dy = -5,
 }
 enemy.__index = enemy
 
@@ -452,12 +443,8 @@ end
 bullet_tiles = {16, 17, 18, 19}
 bullet = {
   speed = 3,
-  box = {
-    dx = 0,
-    dy = 0,
-    w = 5,
-    h = 5,
-  }
+  w = 4,
+  h = 4,
 }
 bullet.__index = bullet
 
@@ -468,8 +455,8 @@ function fire_bullet_from_to(x1, y1, x2, y2)
 
   local norm = sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1))
   local instance = {
-    x = x1 - (bullet.box.dx + bullet.box.w/2),
-    y = y1 - (bullet.box.dy + bullet.box.h/2),
+    x = x1 - bullet.w/2,
+    y = y1 - bullet.h/2,
     dx = bullet.speed*(x2 - x1)/norm,
     dy = bullet.speed*(y2 - y1)/norm,
     tile_counter = 0,
@@ -490,8 +477,8 @@ function explode(boxed)
   add(explosions, {
     life = #explosion_frames,
     i = 1,
-    x = boxed.x + boxed.box.dx,
-    y = boxed.y + boxed.box.dy,
+    x = boxed.x + boxed.w/2 - 4,
+    y = boxed.y + boxed.h/2 - 4,
   })
 end
 
@@ -509,46 +496,22 @@ function distributor(n1, n2, x1, x2)
 end
 
 function collides_with(a, b)
-  local xa = a.x + a.box.dx
-  local ya = a.y + a.box.dy
-  local xb = b.x + b.box.dx
-  local yb = b.y + b.box.dy
-  return xa < xb + b.box.w and
-     xa + a.box.w > xb and
-     ya < yb + b.box.h and
-     a.box.h + ya > yb
-end
-
-function box(boxed)
-  local x1 = boxed.x + boxed.box.dx
-  local y1 = boxed.y + boxed.box.dy
-  local x2 = x1 + boxed.box.w
-  local y2 = y1 + boxed.box.h
-
-  return x1, y1, x2, y2
+  return a.x < b.x + b.w and
+     a.x + a.w > b.x and
+     a.y < b.y + b.h and
+     a.h + a.y > b.y
 end
 
 function center(boxed)
-  local x1, y1, x2, y2 = box(boxed)
-  return (x1 + x2)/2, (y1 + y2)/2
+  return boxed.x + boxed.w/2, boxed.y + boxed.h/2
 end
 
 function is_in_screen(boxed)
-  local x1 = boxed.x + boxed.box.dx
-  local y1 = boxed.y + boxed.box.dy
-  local x2 = x1 + boxed.box.w
-  local y2 = y1 + boxed.box.h
-
-  return x1 > 0 and y1 > 0 and
-         x2 < 127 and y2 < 127
+  return boxed.x > 0 and boxed.y > 0 and
+         boxed.x + boxed.w < 127 and boxed.y + boxed.h < 127
 end
 
 function is_off_screen(boxed)
-  local x1 = boxed.x + boxed.box.dx
-  local y1 = boxed.y + boxed.box.dy
-  local x2 = x1 + boxed.box.w
-  local y2 = y1 + boxed.box.h
-
-  return x1 > 128 or y1 > 128 or
-         x2 < 0 or y2 < 0
+  return boxed.x > 128 or boxed.y > 128 or
+         boxed.x + boxed.w < 0 or boxed.y + boxed.h < 0
 end
