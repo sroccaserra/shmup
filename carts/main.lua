@@ -41,6 +41,7 @@ camera_y = 320
 -- main
 
 function _init()
+  music(0)
   score = 0
 
   ship_frame_index_from_angle = distributor(1, 5, -0.25, 0.25)
@@ -480,6 +481,7 @@ function explode(boxed)
     x = boxed.x + boxed.w/2 - 4,
     y = boxed.y + boxed.h/2 - 4,
   })
+  sfx(10)
 end
 
 ---
