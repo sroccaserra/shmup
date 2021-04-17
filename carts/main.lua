@@ -396,7 +396,7 @@ function flame_shoot()
   add(flame_shots, shot)
 end
 
-enemy = {
+base_enemy = {
   tile = 27,
   w = 5,
   h = 6,
@@ -404,7 +404,7 @@ enemy = {
   tile_dx = -5,
   tile_dy = -5,
 }
-enemy.__index = enemy
+base_enemy.__index = base_enemy
 
 function spawn_enemy()
   local instance = {
@@ -419,7 +419,7 @@ function spawn_enemy()
   else
     instance.dx = 1
   end
-  setmetatable(instance, enemy)
+  setmetatable(instance, base_enemy)
   add(enemies, instance)
 end
 

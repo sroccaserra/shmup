@@ -16,3 +16,6 @@ build:
 .PHONY: run
 run:
 	$(PICO_8) -root_path carts -run carts/shmup.p8
+
+# music: carts/shmup.p8
+# 	$(PICO_8) -root_path carts -export shmup.wav carts/shmup.p8
