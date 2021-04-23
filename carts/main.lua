@@ -90,9 +90,8 @@ function _update()
   end
 
   frame_counter = frame_counter + 1
-  if 0 == frame_counter % (3 * 10) then
-    spawn_enemy()
-  end
+
+  update_waves()
 
   local input = {
     left = btn(0),
@@ -288,6 +287,17 @@ function update_stars()
     if star.y > 128 then
       star.y = 0
     end
+  end
+end
+
+-- générer des vagues d'ennemis
+-- une vague : commence en fonction de la position de la caméra, camera_y
+-- une vague consiste en une liste d'ennemis
+-- les ennemis suivent un chemin
+-- un chemin est une fonction t -> (x, y) (permet de faire des courbes, des cercles)
+function update_waves()
+  if 0 == frame_counter % (3 * 10) then
+    spawn_enemy()
   end
 end
 
