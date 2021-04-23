@@ -35,7 +35,6 @@ ship = {
   starting_frames = 0,
 }
 
-camera_y = 320
 wave_configurations = {}
 
 ---
@@ -44,6 +43,9 @@ wave_configurations = {}
 function _init()
   music(0)
   score = 0
+
+  camera_y = 320
+  level_y = 0
 
   ship_frame_index_from_angle = distributor(1, 5, -0.25, 0.25)
   ship.shoot = pea_shoot
@@ -56,7 +58,7 @@ function _init()
   explosions = {}
 
   wave_configurations = {}
-  for i=30,300,30 do
+  for i=-15,-150,-15 do
     add(wave_configurations, create_wave_configuration(i))
   end
 
@@ -90,11 +92,6 @@ function _draw()
 end
 
 function _update()
-  camera_y = camera_y - 0.5
-  if camera_y == -128 then
-    camera_y = 128
-  end
-
   frame_counter = frame_counter + 1
 
   local input = {
@@ -108,6 +105,7 @@ function _update()
 
   update_ship(input)
 
+  update_background()
   update_bullets()
   update_waves()
   update_explosions()
@@ -258,6 +256,17 @@ function update_ship_angle()
   ship.a = mid(-0.25, ship.a, 0.25)
 end
 
+function update_background()
+  local increment = -0.5
+
+  level_y = level_y + increment
+
+  camera_y = camera_y + increment
+  if camera_y == -128 then
+    camera_y = 128
+  end
+end
+
 function update_explosions()
   for explosion in all(explosions) do
     explosion.i = explosion.i + 1
@@ -298,14 +307,12 @@ function update_waves()
   local new_waves = get_new_waves()
 
   for wave in all(new_waves) do
-    add_ennemies_from_wave(wave)
+    add_enemies_from_wave(wave)
   end
 
   update_enemies()
 end
 
--- une vague : commence en fonction de la position de la caméra, camera_y
--- la vague nait en fonction de la position de la caméra
 function get_new_waves()
   local new_waves = {}
 
@@ -318,7 +325,7 @@ function get_new_waves()
   return new_waves
 end
 
-function add_ennemies_from_wave(wave)
+function add_enemies_from_wave(wave)
   for enemy in all(wave) do
     add(enemies, enemy)
   end
@@ -521,12 +528,15 @@ function explode(boxed)
   sfx(10)
 end
 
-function create_wave_configuration(start_frame)
+---
+-- Wave configurations
+
+function create_wave_configuration(start_y)
   return {
-    start_frame = start_frame,
+    start_y = start_y,
     enemies = {spawn_enemy()},
     must_start = function(self)
-      return frame_counter == self.start_frame
+      return level_y == self.start_y
     end
   }
 end
