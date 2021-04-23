@@ -36,7 +36,7 @@ ship = {
 }
 
 camera_y = 320
-wave_frames = {}
+wave_configurations = {}
 
 ---
 -- main
@@ -55,9 +55,9 @@ function _init()
   bullets = {}
   explosions = {}
 
-  wave_frames = {}
+  wave_configurations = {}
   for i=30,300,30 do
-    wave_frames[i] = true
+    add(wave_configurations, create_wave_configuration(i))
   end
 
   stars = {}
@@ -304,18 +304,18 @@ function update_waves()
   update_enemies()
 end
 
--- [ ] une vague : commence en fonction de la position de la caméra, camera_y
--- [ ] transformer la génération temps réel en configuration
--- [ ] avoir une liste de frames qui génèrent une wave -> configuration dans
---     _init()
--- [ ] demander à chaque vague si elle doit naitre
--- [ ] la vague nait en fonction de la position de la caméra
+-- une vague : commence en fonction de la position de la caméra, camera_y
+-- la vague nait en fonction de la position de la caméra
 function get_new_waves()
-  if wave_frames[frame_counter] then
-    return {{spawn_enemy()}}
+  local new_waves = {}
+
+  for wave_configuration in all(wave_configurations) do
+    if wave_configuration:must_start() then
+      add(new_waves, wave_configuration.enemies)
+    end
   end
 
-  return {}
+  return new_waves
 end
 
 function add_ennemies_from_wave(wave)
@@ -324,9 +324,9 @@ function add_ennemies_from_wave(wave)
   end
 end
 
--- [ ] les ennemis peuvent démarrer offscreen
--- [ ] les ennemis suivent un chemin
--- [ ] un chemin est une fonction t -> (x, y) (permet de faire des courbes, des cercles)
+-- les ennemis peuvent démarrer offscreen
+-- les ennemis suivent un chemin
+-- un chemin est une fonction t -> (x, y) (permet de faire des courbes, des cercles)
 function update_enemies()
   for enemy in all(enemies) do
     if enemy.has_entered and is_off_screen(enemy) then
@@ -519,6 +519,16 @@ function explode(boxed)
     y = boxed.y + boxed.h/2 - 4,
   })
   sfx(10)
+end
+
+function create_wave_configuration(start_frame)
+  return {
+    start_frame = start_frame,
+    enemies = {spawn_enemy()},
+    must_start = function(self)
+      return frame_counter == self.start_frame
+    end
+  }
 end
 
 ---
