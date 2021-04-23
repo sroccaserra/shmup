@@ -91,8 +91,6 @@ function _update()
 
   frame_counter = frame_counter + 1
 
-  update_waves()
-
   local input = {
     left = btn(0),
     right = btn(1),
@@ -105,7 +103,7 @@ function _update()
   update_ship(input)
 
   update_bullets()
-  update_enemies()
+  update_waves()
   update_explosions()
   update_ship_shots()
   update_stars()
@@ -292,12 +290,29 @@ end
 
 -- générer des vagues d'ennemis
 -- une vague : commence en fonction de la position de la caméra, camera_y
--- une vague consiste en une liste d'ennemis
+-- une vague consiste en une liste d'ennemis qui peuvent démarrer offscreen
 -- les ennemis suivent un chemin
 -- un chemin est une fonction t -> (x, y) (permet de faire des courbes, des cercles)
 function update_waves()
+  local new_waves = get_new_waves()
+
+  for wave in all(new_waves) do
+    add_ennemies_from_wave(wave)
+  end
+
+  update_enemies()
+end
+
+function get_new_waves()
   if 0 == frame_counter % (3 * 10) then
-    spawn_enemy()
+    return {{spawn_enemy()}}
+  end
+  return {}
+end
+
+function add_ennemies_from_wave(wave)
+  for enemy in all(wave) do
+    add(enemies, enemy)
   end
 end
 
@@ -430,7 +445,8 @@ function spawn_enemy()
     instance.dx = 1
   end
   setmetatable(instance, base_enemy)
-  add(enemies, instance)
+
+  return instance
 end
 
 function is_hit(enemy)
