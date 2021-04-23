@@ -36,6 +36,7 @@ ship = {
 }
 
 camera_y = 320
+wave_frames = {}
 
 ---
 -- main
@@ -50,9 +51,14 @@ function _init()
 
   pea_shots = {}
   flame_shots = {}
-  enemies = {}
+  enemies = {} -- enemies on screen
   bullets = {}
   explosions = {}
+
+  wave_frames = {}
+  for i=30,300,30 do
+    wave_frames[i] = true
+  end
 
   stars = {}
   for i=1,20 do
@@ -288,11 +294,6 @@ function update_stars()
   end
 end
 
--- générer des vagues d'ennemis
--- une vague : commence en fonction de la position de la caméra, camera_y
--- une vague consiste en une liste d'ennemis qui peuvent démarrer offscreen
--- les ennemis suivent un chemin
--- un chemin est une fonction t -> (x, y) (permet de faire des courbes, des cercles)
 function update_waves()
   local new_waves = get_new_waves()
 
@@ -303,10 +304,17 @@ function update_waves()
   update_enemies()
 end
 
+-- [ ] une vague : commence en fonction de la position de la caméra, camera_y
+-- [ ] transformer la génération temps réel en configuration
+-- [ ] avoir une liste de frames qui génèrent une wave -> configuration dans
+--     _init()
+-- [ ] demander à chaque vague si elle doit naitre
+-- [ ] la vague nait en fonction de la position de la caméra
 function get_new_waves()
-  if 0 == frame_counter % (3 * 10) then
+  if wave_frames[frame_counter] then
     return {{spawn_enemy()}}
   end
+
   return {}
 end
 
@@ -316,6 +324,9 @@ function add_ennemies_from_wave(wave)
   end
 end
 
+-- [ ] les ennemis peuvent démarrer offscreen
+-- [ ] les ennemis suivent un chemin
+-- [ ] un chemin est une fonction t -> (x, y) (permet de faire des courbes, des cercles)
 function update_enemies()
   for enemy in all(enemies) do
     if enemy.has_entered and is_off_screen(enemy) then
